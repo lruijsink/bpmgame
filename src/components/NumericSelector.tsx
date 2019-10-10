@@ -39,6 +39,10 @@ const Button = styled.button`
     :hover {
         background: rebeccapurple;
     }
+
+    :disabled {
+        background: grey;
+    }
 `
 
 const ValueContainer = styled.div`
@@ -56,14 +60,62 @@ const ValueContainer = styled.div`
 const Value = styled.span`
 `
 
-type NumericSelectorProperties = {default: number, options: Array<number>};
+interface NumericSelectorProperties {
+    value?: number;
+    options?: number[];
+    minimum?: number;
+    maximum?: number;
+    disabled?: boolean;
+    onChange?: (v: number) => void;
+};
 
-export default class NumericSelector extends React.Component<NumericSelectorProperties, {index: number}> {
+interface NumericSelectorState {
+    index: number;
+};
+
+export default class NumericSelector extends React.Component<NumericSelectorProperties, NumericSelectorState> {
+    lastValue: number;
+    options: number[];
+    disabled: boolean;
+
     constructor(props: NumericSelectorProperties) {
         super(props);
-        let index: number = props.options.findIndex((v, i, o) => v == props.default);
-        if (index < 0) index = 0;
-        this.state = {index: index};
+
+        // If options property is not set, default to [n..m] where n and m are
+        // inclusive lower and upper bounds, defaulting to [0..99].
+        let options = props.options;
+        if (options === undefined) {
+            let minimum = props.minimum !== undefined
+                        ? props.minimum
+                        : 0;
+            let maximum = props.maximum !== undefined
+                        ? props.maximum
+                        : 99;
+            
+            if (maximum < minimum)
+                maximum = minimum;
+
+            let span = maximum - minimum + 1;
+            options = Array<number>(span);
+            for(let i = 0; i < span; i++)
+                options[i] = minimum + i;
+        }
+        this.options = options;
+
+        let value = props.value !== undefined
+                  ? props.value
+                  : this.options[0];
+        this.lastValue = value;
+
+        let index: number = this.options.findIndex((v, i, o) => v === value);
+        if (index < 0)
+            index = 0;
+
+        this.disabled = this.props.disabled !== undefined && this.props.disabled;
+
+        this.state = {
+            index: index
+        };
     }
 
     decrement() {
@@ -74,8 +126,21 @@ export default class NumericSelector extends React.Component<NumericSelectorProp
 
     increment() {
         this.setState((state, props) => (
-            {index: Math.min(state.index + 1, props.options.length - 1)}
+            {index: Math.min(state.index + 1, this.options.length - 1)}
         ));
+    }
+
+    componentDidUpdate(newProps: NumericSelectorProperties, newState: NumericSelectorState) {
+        this.disabled = this.props.disabled !== undefined && this.props.disabled;
+
+        // Only call callback if value actually changed.
+        let newValue = this.options[this.state.index];
+        if(newValue === this.lastValue)
+            return;
+        this.lastValue = newValue;
+
+        if(this.props.onChange !== undefined)
+            this.props.onChange(newValue);
     }
 
     render() {
@@ -83,13 +148,17 @@ export default class NumericSelector extends React.Component<NumericSelectorProp
             <Container>
                 <InnerContainer>
                     <ButtonContainer>
-                        <Button onClick={this.decrement.bind(this)}>-</Button>
+                        <Button
+                            onClick={this.decrement.bind(this)}
+                            disabled={this.disabled || this.state.index == 0}>-</Button>
                     </ButtonContainer>
                     <ValueContainer>
-                        <Value>{this.props.options[this.state.index]}</Value>
+                        <Value>{this.options[this.state.index]}</Value>
                     </ValueContainer>
                     <ButtonContainer>
-                        <Button onClick={this.increment.bind(this)}>+</Button>
+                        <Button
+                            onClick={this.increment.bind(this)}
+                            disabled={this.disabled || this.state.index == this.options.length - 1}>+</Button>
                     </ButtonContainer>
                 </InnerContainer>
             </Container>
