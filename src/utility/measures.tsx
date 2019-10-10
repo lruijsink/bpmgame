@@ -31,6 +31,20 @@ export class TimeSpan {
         let beatsPerSecond: number = beatsPerMinute / 60;
         return this.units / (beatsPerSecond * beatNoteLength.units);
     }
+
+    /**
+     * Converts the timespan in units of TimeUnit to milliseconds, given a BPM
+     * and what the note length of a beat should be. Unlike toSeconds, which
+     * returns a float, this function will round to an integer.
+     * 
+     * @param beatsPerMinute    The BPM to convert to
+     * @param beatNoteLength    The note length of a beat
+     * @return                  The timespan converted to milliseconds
+     */
+    toMilliseconds(beatsPerMinute: number,
+                   beatNoteLength: TimeSpan = Note.Quarter): number {
+        return Math.round(1000 * this.toSeconds(beatsPerMinute, beatNoteLength));
+    }
 }
 
 /**

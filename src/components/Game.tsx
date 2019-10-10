@@ -57,6 +57,12 @@ export default class Game extends React.Component<GameProperties, GameState> {
         }));
     }
 
+    onGameFinish() {
+        this.setState((prevState, props) => ({
+            playing: false
+        }));
+    }
+
     render() {
         return (
             <Container>
@@ -69,6 +75,7 @@ export default class Game extends React.Component<GameProperties, GameState> {
                     playing={this.state.playing}
                     timeSignature={this.state.timeSignature}
                     bpm={this.state.bpm}
+                    onFinish={this.onGameFinish.bind(this)}
                 />
             </Container>
         )
