@@ -23,6 +23,7 @@ const Panel = styled.div`
     background: var(--panel-bg-color);
     border: none;
     border-radius: 0.5em;
+    text-align: center;
 `
 
 const BPMPanel = styled(Panel)`
@@ -64,27 +65,27 @@ const PlayButton = styled(StyledButton)`
 `
 
 interface GameControlsProperties {
-    onPlay: (timeSignature: Measures.TimeSignature, bpm: number) => {},
-    onStop: () => {}
+    playing: boolean;
+    onSettingsChange: (timeSignature: Measures.TimeSignature, bpm: number) => void;
+    onTogglePlay: () => void;
 }
 
 interface GameControlsState {
-    playing: boolean;
     timeSignature: Measures.TimeSignature;
     bpm: number;
 }
 
 export default class GameControls extends React.Component<GameControlsProperties, GameControlsState> {
     public static defaultProps = {
-        onPlay: (t: Measures.TimeSignature, v: number) => {},
-        onStop: () => {}
+        playing: false,
+        onSettingsChange: (t: Measures.TimeSignature, v: number) => {},
+        onTogglePlay: () => {}
     };
 
     constructor(props: GameControlsProperties) {
         super(props);
 
         this.state = {
-            playing: false,
             timeSignature: new Measures.TimeSignature(4, Measures.Note.Quarter),
             bpm: 120
         };
@@ -109,19 +110,15 @@ export default class GameControls extends React.Component<GameControlsProperties
         }));
     }
 
-    togglePlay() {
-        this.setState((state, props) => ({
-            playing: !state.playing
-        }));
+    componentDidUpdate(prevProps: GameControlsProperties, prevState: GameControlsState) {
+        if (this.state.timeSignature.beatCount !== prevState.timeSignature.beatCount ||
+            this.state.timeSignature.beatLength !== prevState.timeSignature.beatLength ||
+            this.state.bpm !== prevState.bpm)
+            this.props.onSettingsChange(this.state.timeSignature, this.state.bpm);
     }
 
-    componentDidUpdate(prevProps: GameControlsProperties, prevState: GameControlsState) {
-        if(this.state.playing !== prevState.playing) {
-            if(this.state.playing)
-                this.props.onPlay(this.state.timeSignature, this.state.bpm);
-            else
-                this.props.onStop();
-        }
+    onTogglePlay() {
+        this.props.onTogglePlay();
     }
 
     render() {
@@ -137,7 +134,7 @@ export default class GameControls extends React.Component<GameControlsProperties
                                 <NumericSelector
                                     value={120}
                                     options={[50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]}
-                                    disabled={this.state.playing}
+                                    disabled={this.props.playing}
                                     onChange={this.updateBPM.bind(this)} />
                             </PanelContentContainer>
                         </PanelContent>
@@ -151,12 +148,12 @@ export default class GameControls extends React.Component<GameControlsProperties
                                 <NumericSelector
                                     value={4}
                                     options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
-                                    disabled={this.state.playing}
+                                    disabled={this.props.playing}
                                     onChange={this.updateTimeSignatureCount.bind(this)} />
                                 <NumericSelector
                                     value={4}
                                     options={[1, 2, 4, 8, 16]}
-                                    disabled={this.state.playing}
+                                    disabled={this.props.playing}
                                     onChange={this.updateTimeSignatureLength.bind(this)} />
                             </PanelContentContainer>
                         </PanelContent>
@@ -167,7 +164,7 @@ export default class GameControls extends React.Component<GameControlsProperties
                         </PanelLabel>
                         <PanelContent>
                             <PanelContentContainer>
-                                <PlayButton onClick={this.togglePlay.bind(this)}>{this.state.playing ? "Stop" : "Play"}</PlayButton>
+                                <PlayButton onClick={this.onTogglePlay.bind(this)}>{this.props.playing ? "Stop" : "Play"}</PlayButton>
                             </PanelContentContainer>
                         </PanelContent>
                     </ButtonsPanel>
