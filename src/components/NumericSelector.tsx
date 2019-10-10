@@ -60,6 +60,10 @@ const Value = styled.span`
     font-size: inherit;
 `
 
+const DisabledValue = styled(Value)`
+    color: var(--disabled-font-color);
+`
+
 interface NumericSelectorProperties {
     value: number;
     options: number[];
@@ -108,6 +112,9 @@ export default class NumericSelector extends React.Component<NumericSelectorProp
     }
 
     render() {
+        let value = this.props.disabled 
+                  ? <DisabledValue>{this.props.options[this.state.index]}</DisabledValue>
+                  : <Value>{this.props.options[this.state.index]}</Value>;
         return (
             <Container>
                 <InnerContainer>
@@ -117,7 +124,7 @@ export default class NumericSelector extends React.Component<NumericSelectorProp
                             disabled={this.props.disabled || this.state.index === 0}>-</LeftButton>
                     </ButtonContainer>
                     <ValueContainer>
-                        <Value>{this.props.options[this.state.index]}</Value>
+                        {value}
                     </ValueContainer>
                     <ButtonContainer>
                         <RightButton
