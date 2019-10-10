@@ -1,0 +1,17 @@
+:root {
+  --main-bg-color: #282c34;
+
+  --main-font-color: black;
+  --disabled-font-color: lightgrey;
+  --label-font-color: grey;
+
+  --panel-bg-color: white;
+
+  --control-border-color: lightgrey;
+  --disabled-control-border-color: lightgrey;
+  --hovered-control-border-color: palevioletred;
+
+  --control-color: transparent;
+  --disabled-control-color: transparent;
+  --hovered-control-color: transparent;
+}
