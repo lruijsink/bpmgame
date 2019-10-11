@@ -1,12 +1,14 @@
 import React from 'react';
 import styled from 'styled-components';
 
+import NoteGraphic from './NoteGraphic'
+
 import * as Measures from './../utility/measures';
 import * as Async from './../utility/async';
 
 const Container = styled.div`
     width: 29.4em;
-    height: 10em;
+    height: 5em;
     margin: 0.3em;
     margin-top: 0;
     background: var(--panel-bg-color);
@@ -18,12 +20,51 @@ const CountDown = styled.div`
     width: 100%;
     height: 100%;
     text-align: center;
+    padding-top: 1em;
 `
 
 const CountDownMessage = styled.div`
 `
 
 const CountDownCounter = styled.div`
+`
+
+const Board = styled.div`
+    padding: 1em;
+`
+
+const BarsOuter = styled.div`
+    display: table;
+    width: 100%;
+    height: 3em;
+    border-left: 0.1em solid black;
+`
+
+const BarsInner = styled.div`
+    display: table-row;
+`
+
+const Bar = styled.div`
+    display: table-cell;
+    text-align: center;
+    border-right: 0.1em solid black;
+    border-top: none;
+    border-bottom: none;
+`
+
+const BeatsOuter = styled.div`
+    display: table;
+    width: 100%;
+    height: 3em;
+`
+
+const BeatsInner = styled.div`
+    display: table-row;
+`
+
+const Beat = styled.span`
+    display: table-cell;
+    padding-top: 0.7em;
 `
 
 interface GameBoardProperties {
@@ -40,11 +81,11 @@ interface GameBoardState {
 
 export default class GameBoard extends React.Component<GameBoardProperties, GameBoardState> {
 
-    constructor(props: GameBoardProperties) {
-        super(props);
-    }
+    //=========================================================================
+    // React overloads
+    //=========================================================================
 
-    render() {
+    public render() {
         let content;
         if(this.props.countingDown) {
             content = (
@@ -56,10 +97,15 @@ export default class GameBoard extends React.Component<GameBoardProperties, Game
         }
         else {
             content = (
-                <div>
-                    {this.props.timeSignature.beatCount} / {this.props.timeSignature.beatLength.units}<br />
-                    {this.props.currentBeat}
-                </div>
+                <Board>
+                    <BarsOuter>
+                        <BarsInner>
+                            {new Array(this.props.barsToPlay).fill(null).map(
+                                (_, barIndex) => this.renderBar(barIndex)
+                            )}
+                        </BarsInner>
+                    </BarsOuter>
+                </Board>
             );
         }
 
@@ -67,6 +113,35 @@ export default class GameBoard extends React.Component<GameBoardProperties, Game
             <Container onClick={this.props.onClick}>
                 {content}
             </Container>
+        );
+    }
+
+    //=========================================================================
+    // Helper functions
+    //=========================================================================
+
+    private renderBar(barIndex: number) {
+        return (
+            <Bar>
+                <BeatsOuter>
+                    <BeatsInner>
+                        {new Array(this.props.timeSignature.beatCount).fill(null).map(
+                            (_, beatIndex) => this.renderBeat(barIndex, beatIndex)
+                        )}
+                    </BeatsInner>
+                </BeatsOuter>
+            </Bar>
+        );
+    }
+
+    private renderBeat(barIndex: number, beatIndex: number) {
+        return (
+            <Beat>
+                <NoteGraphic
+                    beatLength={this.props.timeSignature.beatLength}
+                    played={this.props.currentBeat > barIndex * this.props.timeSignature.beatCount + beatIndex}
+                />
+            </Beat>
         );
     }
 }

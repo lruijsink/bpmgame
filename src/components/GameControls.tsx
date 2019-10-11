@@ -1,7 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
-import NumericSelector from './NumericSelector';
+
 import * as Measures from './../utility/measures';
+import * as GameConfig from './../utility/gameConfig';
+
+import NumericSelector from './NumericSelector';
 import {StyledButton} from './StyledButton';
 
 const Container = styled.div`
@@ -76,52 +79,59 @@ interface GameControlsState {
 }
 
 export default class GameControls extends React.Component<GameControlsProperties, GameControlsState> {
-    public static defaultProps = {
-        playing: false,
-        onSettingsChange: (t: Measures.TimeSignature, v: number) => {},
-        onTogglePlay: () => {}
-    };
 
-    constructor(props: GameControlsProperties) {
+    //=========================================================================
+    // Methods
+    //=========================================================================
+
+    public constructor(props: GameControlsProperties) {
         super(props);
 
         this.state = {
-            timeSignature: new Measures.TimeSignature(4, Measures.Note.Quarter),
-            bpm: 120
+            timeSignature: GameConfig.DefaultTimeSignature,
+            bpm: GameConfig.DefaultBPM
         };
     }
 
-    updateTimeSignatureCount(newCount: number) {
+    //=========================================================================
+    // Event handlers
+    //=========================================================================
+
+    private onUpdateBPM(newBPM: number) {
+        this.setState((state, props) => ({
+            bpm: newBPM
+        }));
+    }
+
+    private onUpdateTimeSignatureCount(newCount: number) {
         this.setState((state, props) => ({
             timeSignature: new Measures.TimeSignature(newCount, state.timeSignature.beatLength)
         }));
     }
 
-    updateTimeSignatureLength(newValue: number) {
+    private onUpdateTimeSignatureLength(newValue: number) {
         let newLength = new Measures.TimeSpan(Measures.Note.Whole.units / newValue);
         this.setState((state, props) => ({
             timeSignature: new Measures.TimeSignature(state.timeSignature.beatCount, newLength)
         }));
     }
 
-    updateBPM(newBPM: number) {
-        this.setState((state, props) => ({
-            bpm: newBPM
-        }));
+    private onTogglePlay() {
+        this.props.onTogglePlay();
     }
 
-    componentDidUpdate(prevProps: GameControlsProperties, prevState: GameControlsState) {
+    //=========================================================================
+    // React overloads
+    //=========================================================================
+
+    public componentDidUpdate(prevProps: GameControlsProperties, prevState: GameControlsState) {
         if (this.state.timeSignature.beatCount !== prevState.timeSignature.beatCount ||
             this.state.timeSignature.beatLength !== prevState.timeSignature.beatLength ||
             this.state.bpm !== prevState.bpm)
             this.props.onSettingsChange(this.state.timeSignature, this.state.bpm);
     }
 
-    onTogglePlay() {
-        this.props.onTogglePlay();
-    }
-
-    render() {
+    public render() {
         return (
             <Container>
                 <InnerContainer>
@@ -132,10 +142,10 @@ export default class GameControls extends React.Component<GameControlsProperties
                         <PanelContent>
                             <PanelContentContainer>
                                 <NumericSelector
-                                    value={120}
-                                    options={[50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]}
+                                    value={GameConfig.DefaultBPM}
+                                    options={GameConfig.BPMOptions}
                                     disabled={this.props.playing}
-                                    onChange={this.updateBPM.bind(this)} />
+                                    onChange={this.onUpdateBPM.bind(this)} />
                             </PanelContentContainer>
                         </PanelContent>
                     </BPMPanel>
@@ -146,15 +156,15 @@ export default class GameControls extends React.Component<GameControlsProperties
                         <PanelContent>
                             <PanelContentContainer>
                                 <NumericSelector
-                                    value={4}
-                                    options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
+                                    value={GameConfig.DefaultTimeSignature.beatCount}
+                                    options={GameConfig.TimeSignatureCountOptions}
                                     disabled={this.props.playing}
-                                    onChange={this.updateTimeSignatureCount.bind(this)} />
+                                    onChange={this.onUpdateTimeSignatureCount.bind(this)} />
                                 <NumericSelector
-                                    value={4}
-                                    options={[1, 2, 4, 8, 16]}
+                                    value={Measures.Note.Whole.units / GameConfig.DefaultTimeSignature.beatLength.units}
+                                    options={GameConfig.TimeSignatureLengthOptions}
                                     disabled={this.props.playing}
-                                    onChange={this.updateTimeSignatureLength.bind(this)} />
+                                    onChange={this.onUpdateTimeSignatureLength.bind(this)} />
                             </PanelContentContainer>
                         </PanelContent>
                     </TimeSignaturePanel>

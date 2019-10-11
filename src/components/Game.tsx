@@ -6,6 +6,7 @@ import GameBoard from './GameBoard';
 
 import * as Measures from './../utility/measures';
 import * as Async from './../utility/async';
+import * as GameConfig from './../utility/gameConfig';
 
 const Container = styled.div`
     background-color: var(--main-bg-color);
@@ -41,36 +42,55 @@ interface GameState {
 }
 
 export default class Game extends React.Component<GameProperties, GameState> {
+
+    //=========================================================================
+    // Statics
+    //=========================================================================
+
     public static defaultProps = {
         clickSoundFile: process.env.PUBLIC_URL + "/audio/click.wav",
         accentedClickSoundFile: process.env.PUBLIC_URL + "/audio/click_accented.wav",
-        barsToPlay: 4,
+        barsToPlay: GameConfig.BarsToPlay,
     };
 
     public static defaultState = {
         playing: false,
-        timeSignature: new Measures.TimeSignature(4, Measures.Note.Quarter),
-        bpm: 120,
+        timeSignature: GameConfig.DefaultTimeSignature,
+        bpm: GameConfig.DefaultBPM,
         currentBeat: 0,
         countingDown: false,
         scorePerBeat: [],
     };
 
-    constructor(props: GameProperties) {
+    //=========================================================================
+    // Properties
+    //=========================================================================
+
+    private ticker: Async.Ticker | undefined = undefined;
+    
+    private beatsToPlay: number = 0;
+    private msPerBeat: number = 0;
+    private perfectTimeWindow: number = 0;
+    private goodTimeWindow: number = 0;
+
+    private clickSound = new Audio(Game.defaultProps.clickSoundFile);
+    private accentedClickSound = new Audio(Game.defaultProps.accentedClickSoundFile);
+
+    //=========================================================================
+    // Constructor
+    //=========================================================================
+
+    public constructor(props: GameProperties) {
         super(props);
         this.state = Game.defaultState;
-
-        this.beatsToPlay = this.state.timeSignature.beatCount * this.props.barsToPlay;
-        this.msPerBeat = this.state.timeSignature.beatLength.toMilliseconds(this.state.bpm);
+        this.recalculateTemporaries();
     }
 
-    ticker: Async.Ticker | undefined = undefined;
-    beatsToPlay: number = 0;
-    msPerBeat: number = 0;
-    clickSound = new Audio(Game.defaultProps.clickSoundFile);
-    accentedClickSound = new Audio(Game.defaultProps.accentedClickSoundFile);
+    //=========================================================================
+    // Methods
+    //=========================================================================
 
-    playClickSound(accented: boolean) {
+    private playClickSound(accented: boolean) {
         let sound = accented ? this.accentedClickSound : this.clickSound;
         if (sound.paused)
             sound.play();
@@ -78,33 +98,43 @@ export default class Game extends React.Component<GameProperties, GameState> {
             sound.currentTime = 0;
     }
 
-    onSettingsChange(newTimeSignature: Measures.TimeSignature, newBPM: number) {
+    private recalculateTemporaries() {
+        this.beatsToPlay = this.state.timeSignature.beatCount * this.props.barsToPlay;
+        this.msPerBeat = this.state.timeSignature.beatLength.toMilliseconds(this.state.bpm);
+        this.perfectTimeWindow = GameConfig.TimeWindowMultiplier.Perfect * this.msPerBeat;
+        this.goodTimeWindow = GameConfig.TimeWindowMultiplier.Good * this.msPerBeat;
+    }
+
+    //=========================================================================
+    // Event handlers
+    //=========================================================================
+
+    private onSettingsChange(newTimeSignature: Measures.TimeSignature, newBPM: number) {
         this.setState((prevState, props) => ({
+            currentBeat: 0,
             timeSignature: newTimeSignature,
             bpm: newBPM
         }));
-
-        this.beatsToPlay = newTimeSignature.beatCount * this.props.barsToPlay;
-        this.msPerBeat = newTimeSignature.beatLength.toMilliseconds(newBPM);
     }
 
-    onTogglePlay() {
+    private onTogglePlay() {
         this.setState((prevState, props) => ({
             playing: !prevState.playing
         }));
     }
 
-    onFinish() {
+    private onFinish() {
         this.setState((prevState, props) => ({
             playing: false
         }));
     }
 
-    onPlay() {
-        this.setState({
+    private onPlay() {
+        this.setState((prevState, props) => ({
             currentBeat: 0,
             countingDown: true,
-        });
+            scorePerBeat: new Array<number>(this.beatsToPlay + 1).fill(GameConfig.Score.Unknown)
+        }));
 
         this.ticker = new Async.Ticker({
             onTick: this.onCountDown.bind(this),
@@ -115,12 +145,12 @@ export default class Game extends React.Component<GameProperties, GameState> {
         this.ticker.start(this.state.timeSignature.beatCount);
     }
 
-    onCountDown(counter: number) {
+    private onCountDown(counter: number) {
         this.playClickSound(counter === 1);
         this.setState({currentBeat: counter});
     }
 
-    onStart() {
+    private onStart() {
         setTimeout(() => {this.setState({countingDown: false})}, this.msPerBeat);
 
         this.ticker = new Async.Ticker({
@@ -132,12 +162,22 @@ export default class Game extends React.Component<GameProperties, GameState> {
         this.ticker.start(this.beatsToPlay);
     }
 
-    onBeat(counter: number) {
+    private onBeat(counter: number) {
         this.playClickSound(counter % this.state.timeSignature.beatCount === 1);
         this.setState({currentBeat: counter});
+
+        // Mark the beat as missed after the "good" time window has passed
+        setTimeout(
+            () => {
+                console.log(this.state.scorePerBeat);
+                if (this.state.scorePerBeat[counter] === GameConfig.Score.Unknown)
+                    this.state.scorePerBeat[counter] = GameConfig.Score.Miss;
+            },
+            this.goodTimeWindow
+        );
     }
 
-    onStop() {
+    private onStop() {
         this.setState({
             countingDown: false,
         });
@@ -146,10 +186,14 @@ export default class Game extends React.Component<GameProperties, GameState> {
             this.ticker.stop();
     }
 
-    onClick() {
+    private onTap() {
     }
 
-    componentDidUpdate(prevProps: GameProperties, prevState: GameState) {
+    //=========================================================================
+    // React overloads
+    //=========================================================================
+
+    public componentDidUpdate(prevProps: GameProperties, prevState: GameState) {
         if (this.state.playing !== prevState.playing) {
             if (this.state.playing)
                 this.onPlay();
@@ -158,7 +202,7 @@ export default class Game extends React.Component<GameProperties, GameState> {
         }
     }
 
-    render() {
+    public render() {
         return (
             <Container>
                 <GameControls
@@ -172,7 +216,7 @@ export default class Game extends React.Component<GameProperties, GameState> {
                     currentBeat={this.state.currentBeat}
                     countingDown={this.state.countingDown}
                     scorePerBeat={this.state.scorePerBeat}
-                    onClick={this.onClick.bind(this)}
+                    onClick={this.onTap.bind(this)}
                 />
             </Container>
         )
