@@ -1,7 +1,7 @@
 /**
  * The properties that should be passed to Ticker's constructor.
  */
-interface TickerProperties {
+interface TickerProps {
     /** 
      * Callback to call when a tick occurs.
      */
@@ -53,13 +53,13 @@ export class Ticker {
     /**
      * The properties as passed to the constructor.
      */
-    private props: TickerProperties;
+    private props: TickerProps;
 
     //=========================================================================
     // Constructor
     //=========================================================================
 
-    public constructor(props: TickerProperties) {
+    public constructor(props: TickerProps) {
         this.props = props;
     }
 

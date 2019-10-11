@@ -3,7 +3,7 @@ import * as Measures from './measures';
 /**
  * The properties that should be passed to GameSettings's constructor.
  */
-interface GameSettingsProperties {
+interface GameSettingsProps {
     /**
      * How many bars to play for a game.
      */
@@ -37,7 +37,7 @@ export class GameSettings {
     // Constructor
     //=========================================================================
 
-    public constructor(props: GameSettingsProperties) {
+    public constructor(props: GameSettingsProps) {
         this.barsToPlay = props.barsToPlay;
         this.bpm = props.bpm;
         this.timeSignature = props.timeSignature;
