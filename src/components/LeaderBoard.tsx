@@ -12,7 +12,7 @@ const Container = styled.div`
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background: rgba(0, 0, 0, 0.5);
+	background: var(--modal-overlay-color);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -26,9 +26,9 @@ const Modal = styled.div`
 	width: 20em;
 	height: 10em;
 	margin-top: -8em;
-	background: white;
+	background: var(--panel-bg-color);
 	border-radius: 0.5em;
-	box-shadow: 0 0 1em black;
+	box-shadow: 0 0 0.5em var(--modal-shadow-color);
 	padding: 0.5em 1em 0.5em 1em;
 `
 
@@ -135,10 +135,10 @@ export default class LeaderBoard extends React.Component<LeaderBoardProps, Leade
 						{settings}
 					</ModalSettingsLabel>
 					<ModalHeader>
-						You scored {this.props.score}%!
+						You scored {this.props.score}%
 					</ModalHeader>
 					<ModalDescription>
-						Enter your name below to save your score.
+						Enter your name below to save your score
 					</ModalDescription>
 					<ScoreTable>
 						<ScoreRow>

@@ -1,5 +1,7 @@
 :root {
-  --main-bg-color: #282c34;
+  --main-bg-color: rgb(40, 44, 52);
+  --modal-overlay-color: rgb(40, 44, 52, 0.8);
+  --modal-shadow-color: black;
 
   --main-font-color: black;
   --disabled-font-color: lightgrey;
