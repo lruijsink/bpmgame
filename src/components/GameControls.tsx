@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import * as Measures from './../utility/measures';
+import {GameSettings} from './../utility/gameSettings';
 import * as GameConfig from './../utility/gameConfig';
 
 import NumericSelector from './NumericSelector';
@@ -69,7 +70,7 @@ const PlayButton = styled(StyledButton)`
 
 interface GameControlsProperties {
     playing: boolean;
-    onSettingsChange: (timeSignature: Measures.TimeSignature, bpm: number) => void;
+    onSettingsChange: (newSettings: GameSettings) => void;
     onTogglePlay: () => void;
 }
 
@@ -125,10 +126,16 @@ export default class GameControls extends React.Component<GameControlsProperties
     //=========================================================================
 
     public componentDidUpdate(prevProps: GameControlsProperties, prevState: GameControlsState) {
-        if (this.state.timeSignature.beatCount !== prevState.timeSignature.beatCount ||
-            this.state.timeSignature.beatLength !== prevState.timeSignature.beatLength ||
-            this.state.bpm !== prevState.bpm)
-            this.props.onSettingsChange(this.state.timeSignature, this.state.bpm);
+        if (this.state.timeSignature.beatCount !== prevState.timeSignature.beatCount
+            || this.state.timeSignature.beatLength !== prevState.timeSignature.beatLength
+            || this.state.bpm !== prevState.bpm)
+        {
+            this.props.onSettingsChange(new GameSettings({
+                barsToPlay: GameConfig.DefaultBarsToPlay,
+                bpm: this.state.bpm,
+                timeSignature: this.state.timeSignature
+            }));
+        }
     }
 
     public render() {

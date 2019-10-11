@@ -80,22 +80,27 @@ export class TimeSignature {
     readonly beatLength: TimeSpan;
 
     /**
-     * The timespan of a bar, see TimeSpan
-     */
-    readonly barTimeSpan: TimeSpan;
-
-    /**
      * Constructs a new time signature. Count and length are the delimiter and
      * denominator of the signature respectively. For example, 3/4 time
      * (waltzes etc.) would be 3 (count) beats of quarter notes (length).
      * 
-     * @param count     The number of beats per bar
-     * @param length    The note length of a beat
+     * @param count  The number of beats per bar
+     * @param length The note length of a beat
      */
-    constructor(count : number,
-                length : TimeSpan) {
+    public constructor(count : number,
+                       length : TimeSpan) {
         this.beatCount = count;
         this.beatLength = length;
-        this.barTimeSpan = new TimeSpan(count * length.units);
+    }
+
+    /**
+     * Tests for equality against another time signature.
+     * 
+     * @param other    The time signature to test against
+     * @return boolean Whether this time signature equals the other
+     */
+    public equals(other: TimeSignature): boolean {
+        return this.beatCount  === other.beatCount
+            && this.beatLength === other.beatLength;
     }
 }

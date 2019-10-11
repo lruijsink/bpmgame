@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import NoteGraphic from './NoteGraphic'
 
 import * as Measures from './../utility/measures';
+import {GameSettings} from './../utility/gameSettings';
 
 const Container = styled.div`
     width: 29.4em;
@@ -70,12 +71,10 @@ const Beat = styled.span`
 `
 
 interface GameBoardProperties {
-    timeSignature: Measures.TimeSignature;
-    barsToPlay: number;
+    settings: GameSettings;
     currentBeat: number;
     countingDown: boolean;
     scorePerBeat: number[];
-    onClick: () => void;
 }
 
 interface GameBoardState {
@@ -102,7 +101,7 @@ export default class GameBoard extends React.Component<GameBoardProperties, Game
                 <Board>
                     <BarsOuter>
                         <BarsInner>
-                            {new Array(this.props.barsToPlay).fill(null).map(
+                            {new Array(this.props.settings.barsToPlay).fill(null).map(
                                 (_, barIndex) => this.renderBar(barIndex)
                             )}
                         </BarsInner>
@@ -112,7 +111,7 @@ export default class GameBoard extends React.Component<GameBoardProperties, Game
         }
 
         return (
-            <Container onClick={this.props.onClick}>
+            <Container>
                 {content}
             </Container>
         );
@@ -127,7 +126,7 @@ export default class GameBoard extends React.Component<GameBoardProperties, Game
             <Bar key={"bar" + barIndex}>
                 <BeatsOuter>
                     <BeatsInner>
-                        {new Array(this.props.timeSignature.beatCount).fill(null).map(
+                        {new Array(this.props.settings.timeSignature.beatCount).fill(null).map(
                             (_, beatIndex) => this.renderBeat(barIndex, beatIndex)
                         )}
                     </BeatsInner>
@@ -137,11 +136,11 @@ export default class GameBoard extends React.Component<GameBoardProperties, Game
     }
 
     private renderBeat(barIndex: number, beatIndex: number) {
-        let beatNumber = barIndex * this.props.timeSignature.beatCount + beatIndex;
+        let beatNumber = barIndex * this.props.settings.timeSignature.beatCount + beatIndex;
         return (
             <Beat key={"beat" + beatNumber}>
                 <NoteGraphic
-                    beatLength={this.props.timeSignature.beatLength}
+                    beatLength={this.props.settings.timeSignature.beatLength}
                     played={this.props.currentBeat > beatNumber}
                     score={this.props.scorePerBeat[beatNumber + 1]}
                 />

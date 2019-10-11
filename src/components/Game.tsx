@@ -6,6 +6,7 @@ import GameBoard from './GameBoard';
 
 import * as Measures from './../utility/measures';
 import * as Async from './../utility/async';
+import {GameSettings} from './../utility/gameSettings';
 import * as GameConfig from './../utility/gameConfig';
 
 const Container = styled.div`
@@ -27,15 +28,11 @@ const Container = styled.div`
 `
 
 interface GameProperties {
-    clickSoundFile: string;
-    accentedClickSoundFile: string;
-    barsToPlay: number;
 }
 
 interface GameState {
+    settings: GameSettings;
     playing: boolean;
-    timeSignature: Measures.TimeSignature;
-    bpm: number;
     currentBeat: number;
     countingDown: boolean;
     scorePerBeat: number[];
@@ -44,36 +41,11 @@ interface GameState {
 export default class Game extends React.Component<GameProperties, GameState> {
 
     //=========================================================================
-    // Statics
-    //=========================================================================
-
-    public static defaultProps = {
-        clickSoundFile: process.env.PUBLIC_URL + "/audio/click.wav",
-        accentedClickSoundFile: process.env.PUBLIC_URL + "/audio/click_accented.wav",
-        barsToPlay: GameConfig.BarsToPlay,
-    };
-
-    public static defaultState = {
-        playing: false,
-        timeSignature: GameConfig.DefaultTimeSignature,
-        bpm: GameConfig.DefaultBPM,
-        currentBeat: 0,
-        countingDown: false,
-        scorePerBeat: [],
-    };
-
-    //=========================================================================
     // Properties
     //=========================================================================
 
     private ticker: Async.Ticker | undefined = undefined;
-    
-    private beatsToPlay: number = 0;
-    private msPerBeat: number = 0;
     private beatTimes: number[] = [];
-
-    private clickSound = new Audio(Game.defaultProps.clickSoundFile);
-    private accentedClickSound = new Audio(Game.defaultProps.accentedClickSoundFile);
 
     //=========================================================================
     // Constructor
@@ -81,30 +53,38 @@ export default class Game extends React.Component<GameProperties, GameState> {
 
     public constructor(props: GameProperties) {
         super(props);
-        this.state = Game.defaultState;
-        this.recalculateTemporaries();
+        this.state = {
+            settings: GameConfig.DefaultGameSettings,
+            playing: false,
+            currentBeat: 0,
+            countingDown: false,
+            scorePerBeat: [],
+        };
     }
 
     //=========================================================================
     // Methods
     //=========================================================================
 
-    private playClickSound(accented: boolean) {
-        let sound = accented ? this.accentedClickSound : this.clickSound;
-        if (sound.paused)
-            sound.play();
-        else
-            sound.currentTime = 0;
-    }
-
-    private recalculateTemporaries() {
-        this.beatsToPlay = this.state.timeSignature.beatCount * this.props.barsToPlay;
-        this.msPerBeat = this.state.timeSignature.beatLength.toMilliseconds(this.state.bpm);
-    }
-
-    private updateScore(beat: number, score: number) {
+    private setBeatScore(beat: number, score: number) {
+        // Update state.scorePerBeat array, but via setState so React can
+        // properly deal with the state change
         this.setState((prevState, props) => ({
-            scorePerBeat: prevState.scorePerBeat.map((v, i) => v === GameConfig.Score.Unknown ? (i === beat ? score : v) : v)
+            scorePerBeat: prevState.scorePerBeat.map(
+                (v, i) => prevState.playing && i === beat && v === GameConfig.Score.Unknown
+                        ? score
+                        : v
+            )
+        }));
+    }
+
+    private reset(countDown: boolean = false) {
+        this.beatTimes = new Array<number>(this.state.settings.getBeatsToPlay() + 1).fill(0);
+
+        this.setState((prevState, props) => ({
+            currentBeat: 0,
+            countingDown: countDown,
+            scorePerBeat: new Array<number>(this.state.settings.getBeatsToPlay() + 1).fill(GameConfig.Score.Unknown)
         }));
     }
 
@@ -112,13 +92,9 @@ export default class Game extends React.Component<GameProperties, GameState> {
     // Event handlers
     //=========================================================================
 
-    private onSettingsChange(newTimeSignature: Measures.TimeSignature, newBPM: number) {
-        this.setState((prevState, props) => ({
-            currentBeat: 0,
-            timeSignature: newTimeSignature,
-            bpm: newBPM,
-            scorePerBeat: new Array<number>(this.beatsToPlay + 1).fill(GameConfig.Score.Unknown)
-        }));
+    private onSettingsChange(newSettings: GameSettings) {
+        this.reset();
+        this.setState({ settings: newSettings });
     }
 
     private onTogglePlay() {
@@ -127,69 +103,54 @@ export default class Game extends React.Component<GameProperties, GameState> {
         }));
     }
 
-    private onPlay() {
-        this.setState((prevState, props) => ({
-            currentBeat: 0,
-            countingDown: true,
-            scorePerBeat: new Array<number>(this.beatsToPlay + 1).fill(GameConfig.Score.Unknown)
-        }));
-
-        this.beatTimes = new Array<number>(this.beatsToPlay + 1).fill(0);
-
-        this.ticker = new Async.Ticker({
-            onTick: this.onCountDown.bind(this),
-            onFinish: this.onStart.bind(this),
-            interval: this.msPerBeat,
-        });
-
-        this.ticker.start(this.state.timeSignature.beatCount);
-    }
-
-    private onCountDown(counter: number) {
-        this.playClickSound(counter === 1);
-        this.setState({currentBeat: counter});
-    }
-
-    private onStart() {
-        setTimeout(() => {this.setState({countingDown: false})}, this.msPerBeat);
-
-        this.ticker = new Async.Ticker({
-            onTick: this.onBeat.bind(this),
-            onFinish: this.onFinish.bind(this),
-            interval: this.msPerBeat,
-        });
-
-        this.ticker.start(this.beatsToPlay);
-    }
-
-    private onBeat(counter: number) {
-        this.playClickSound(counter % this.state.timeSignature.beatCount === 1);
-        this.setState({currentBeat: counter});
-
-        // Mark the beat as missed after the "good" time window has passed
-        setTimeout(
-            () => {
-                this.updateScore(counter, GameConfig.Score.Miss);
-            },
-            this.msPerBeat / 2
-        );
-
-        this.beatTimes[counter] = Date.now();
-    }
-
     private onStop() {
-        this.setState({
-            currentBeat: 0,
-            countingDown: false,
-            scorePerBeat: new Array<number>(this.beatsToPlay + 1).fill(GameConfig.Score.Unknown)
-        });
-
+        this.reset();
         if (this.ticker !== undefined)
             this.ticker.stop();
     }
 
+    private onPlay() {
+        this.reset(true);
+
+        this.ticker = new Async.Ticker({
+            onTick: this.onCountDown.bind(this),
+            onFinish: this.onStart.bind(this),
+            interval: this.state.settings.getMsPerBeat(),
+        });
+        this.ticker.start(this.state.settings.timeSignature.beatCount);
+    }
+
+    private onCountDown(counter: number) {
+        GameConfig.playClickSound(counter === 1);
+        this.setState({currentBeat: counter});
+    }
+
+    private onStart() {
+        setTimeout(() => {this.setState({countingDown: false})}, this.state.settings.getMsPerBeat());
+
+        this.ticker = new Async.Ticker({
+            onTick: this.onBeat.bind(this),
+            onFinish: this.onFinish.bind(this),
+            interval: this.state.settings.getMsPerBeat(),
+        });
+        this.ticker.start(this.state.settings.getBeatsToPlay());
+    }
+
+    private onBeat(counter: number) {
+        GameConfig.playClickSound((counter - 1) % this.state.settings.timeSignature.beatCount === 0);
+
+        this.setState({currentBeat: counter});
+        this.beatTimes[counter] = Date.now();
+
+        // Mark the beat as missed if no tap is received in time
+        setTimeout(
+            () => { this.setBeatScore(counter, GameConfig.Score.Miss); },
+            this.state.settings.getMsPerBeat() / 2
+        );
+    }
+
     private onFinish() {
-        setTimeout(() => {this.setState({playing: false})}, this.msPerBeat);
+        setTimeout(() => {this.setState({playing: false})}, this.state.settings.getMsPerBeat());
     }
 
     private onTap() {
@@ -198,8 +159,9 @@ export default class Game extends React.Component<GameProperties, GameState> {
 
         let tapTime = Date.now();
         let beatTime = this.beatTimes[this.state.currentBeat];
-        this.updateScore(this.state.currentBeat, GameConfig.getScore(tapTime, beatTime, this.msPerBeat));
+        this.setBeatScore(this.state.currentBeat, GameConfig.getScore(tapTime, beatTime, this.state.settings.getMsPerBeat()));
 
+        // Log the difference for calibration purposes, see README.md
         console.log(tapTime - beatTime);
     }
 
@@ -208,9 +170,6 @@ export default class Game extends React.Component<GameProperties, GameState> {
     //=========================================================================
 
     public componentDidUpdate(prevProps: GameProperties, prevState: GameState) {
-        if (this.state.bpm !== prevState.bpm || this.state.timeSignature !== prevState.timeSignature)
-            this.recalculateTemporaries();
-
         if (this.state.playing !== prevState.playing) {
             if (this.state.playing)
                 this.onPlay();
@@ -221,19 +180,17 @@ export default class Game extends React.Component<GameProperties, GameState> {
 
     public render() {
         return (
-            <Container>
+            <Container onClick={this.onTap.bind(this)}>
                 <GameControls
                     playing={this.state.playing}
                     onSettingsChange={this.onSettingsChange.bind(this)}
                     onTogglePlay={this.onTogglePlay.bind(this)}
                 />
                 <GameBoard
-                    timeSignature={this.state.timeSignature}
-                    barsToPlay={this.props.barsToPlay}
+                    settings={this.state.settings}
                     currentBeat={this.state.currentBeat}
                     countingDown={this.state.countingDown}
                     scorePerBeat={this.state.scorePerBeat}
-                    onClick={this.onTap.bind(this)}
                 />
             </Container>
         )
