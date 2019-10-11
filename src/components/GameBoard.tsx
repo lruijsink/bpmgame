@@ -3,7 +3,6 @@ import styled from 'styled-components';
 
 import NoteGraphic from './NoteGraphic'
 
-import * as Measures from './../utility/measures';
 import {GameSettings} from './../utility/gameSettings';
 
 const Container = styled.div`

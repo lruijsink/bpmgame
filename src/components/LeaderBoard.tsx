@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 
 import {GameSettings} from './../utility/gameSettings';
-import * as GameConfig from './../utility/gameConfig';
 import * as Measures from './../utility/measures';
 import * as Storage from './../utility/storage';
 
@@ -104,14 +103,16 @@ export default class LeaderBoard extends React.Component<LeaderBoardProps, Leade
 		this.state = {name: ""};
 	}
 
+    //=========================================================================
+    // Event handlers
+    //=========================================================================
+
 	private onNameChange(event: React.FormEvent<HTMLInputElement>) {
-		if (event.target === null)
-			return;
 		this.setState({name: event.currentTarget.value});
 	}
 
 	private onSubmit() {
-		this.onClose();
+		this.props.onClose();
 
 		if (this.state.name === "")
 			return;
@@ -122,19 +123,9 @@ export default class LeaderBoard extends React.Component<LeaderBoardProps, Leade
 		);
 	}
 
-	private onClose() {
-		this.props.onClose();
-	}
-
-	private renderScore(score: Storage.ScoresRow, index: number) {
-		let nbsp = "\u00A0";
-		return (
-			<ScoreRow key="{score.name}_{score.score}_{index}">
-				<ScoreName>{score.name === "" ? nbsp : score.name}</ScoreName>
-				<ScoreValue>{score.score < 0 ? nbsp : score.score + "%"}</ScoreValue>
-			</ScoreRow>
-		);
-	}
+    //=========================================================================
+    // React overloads
+    //=========================================================================
 
 	public render() {
 		let settings = this.props.settings.timeSignature.beatCount
@@ -156,9 +147,9 @@ export default class LeaderBoard extends React.Component<LeaderBoardProps, Leade
 		// Determine if the player made it into the leaderboard.
 		let inLeaderBoard = highestScores.length < 5 || highestScores[4].score < this.props.score;
 
+		// If the player did make it into the leaderboard, the lowest score will
+		// drop off.
 		if (inLeaderBoard)
-			// If the player did make it into the leaderboard, the lowest score
-			// will drop off
 			lowerScores.pop();
 
 		let message = inLeaderBoard
@@ -185,7 +176,7 @@ export default class LeaderBoard extends React.Component<LeaderBoardProps, Leade
 		}
 
 		return (
-			<Container onClick={this.onClose.bind(this)}>
+			<Container onClick={this.props.onClose.bind(this)}>
 				<Modal onClick={(e) => {e.stopPropagation();}}>
 					<ModalSettingsLabel>
 						{settings}
@@ -204,6 +195,20 @@ export default class LeaderBoard extends React.Component<LeaderBoardProps, Leade
 					</ScoreTable>
 				</Modal>
 			</Container>
+		);
+	}
+
+    //=========================================================================
+    // Helper functions
+    //=========================================================================
+
+	private renderScore(score: Storage.ScoresRow, index: number) {
+		let nbsp = "\u00A0";
+		return (
+			<ScoreRow key="{score.name}_{score.score}_{index}">
+				<ScoreName>{score.name === "" ? nbsp : score.name}</ScoreName>
+				<ScoreValue>{score.score < 0 ? nbsp : score.score + "%"}</ScoreValue>
+			</ScoreRow>
 		);
 	}
 }

@@ -5,7 +5,6 @@ import GameControls from './GameControls';
 import GameBoard from './GameBoard';
 import LeaderBoard from './LeaderBoard';
 
-import * as Measures from './../utility/measures';
 import * as Async from './../utility/async';
 import {GameSettings} from './../utility/gameSettings';
 import * as GameConfig from './../utility/gameConfig';
