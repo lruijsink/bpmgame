@@ -14,4 +14,8 @@
   --control-color: transparent;
   --disabled-control-color: transparent;
   --hovered-control-color: transparent;
+
+  --perfect-note-color: green;
+  --good-note-color: orange;
+  --missed-note-color: red;
 }

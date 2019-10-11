@@ -19,15 +19,15 @@ const NoteImg = styled.img`
 `
 
 const PerfectNoteImg = styled(NoteImg)`
-	border-color: green;
+	border-color: var(--perfect-note-color);
 `
 
 const GoodNoteImg = styled(NoteImg)`
-	border-color: orange;
+	border-color: var(--good-note-color);
 `
 
 const MissedNoteImg = styled(NoteImg)`
-	border-color: red;
+	border-color: var(--missed-note-color);
 `
 
 interface NoteGraphicProperties {
