@@ -52,7 +52,6 @@ export function getScore(tapTime: number, beatTime: number, msPerBeat: number) {
 
 export function calculateScore(scorePerBeat: number[]) {
 	scorePerBeat[0] = 0;
-	console.log(scorePerBeat);
 	let total = scorePerBeat.reduce((x, y) => x + y, 0);
 	let max = (scorePerBeat.length - 1) * Score.Perfect;
 	return Math.round(100 * total / max);
