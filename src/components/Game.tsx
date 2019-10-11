@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 import GameControls from './GameControls';
 import GameBoard from './GameBoard';
+import LeaderBoard from './LeaderBoard';
 
 import * as Measures from './../utility/measures';
 import * as Async from './../utility/async';
@@ -36,6 +37,7 @@ interface GameState {
     currentBeat: number;
     countingDown: boolean;
     scorePerBeat: number[];
+    showLeaderBoard: boolean;
 }
 
 export default class Game extends React.Component<GameProperties, GameState> {
@@ -59,6 +61,7 @@ export default class Game extends React.Component<GameProperties, GameState> {
             currentBeat: 0,
             countingDown: false,
             scorePerBeat: [],
+            showLeaderBoard: false,
         };
     }
 
@@ -150,7 +153,7 @@ export default class Game extends React.Component<GameProperties, GameState> {
     }
 
     private onFinish() {
-        setTimeout(() => {this.setState({playing: false})}, this.state.settings.getMsPerBeat());
+        setTimeout(() => {this.setState({showLeaderBoard: true})}, this.state.settings.getMsPerBeat());
     }
 
     private onTap() {
@@ -163,6 +166,10 @@ export default class Game extends React.Component<GameProperties, GameState> {
 
         // Log the difference for calibration purposes, see README.md
         console.log(tapTime - beatTime);
+    }
+
+    private onLeaderBoardClose() {
+        this.setState({playing: false, showLeaderBoard: false});
     }
 
     //=========================================================================
@@ -179,6 +186,17 @@ export default class Game extends React.Component<GameProperties, GameState> {
     }
 
     public render() {
+        let leaderBoard;
+        if (this.state.showLeaderBoard) {
+            leaderBoard = (
+                <LeaderBoard
+                    settings={this.state.settings}
+                    score={GameConfig.calculateScore(this.state.scorePerBeat)}
+                    onClose={this.onLeaderBoardClose.bind(this)}
+                />
+            );
+        }
+
         return (
             <Container onClick={this.onTap.bind(this)}>
                 <GameControls
@@ -192,6 +210,7 @@ export default class Game extends React.Component<GameProperties, GameState> {
                     countingDown={this.state.countingDown}
                     scorePerBeat={this.state.scorePerBeat}
                 />
+                {leaderBoard}
             </Container>
         )
     }
