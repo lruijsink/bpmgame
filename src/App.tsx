@@ -4,7 +4,7 @@ import './theme/dark.css';
 import Game from './components/Game';
 
 const App: React.FC = () => {
-  return (<Game />);
+    return (<Game />);
 }
 
 export default App;

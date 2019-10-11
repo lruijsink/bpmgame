@@ -1,23 +1,23 @@
 :root {
-  --main-bg-color: rgb(40, 44, 52);
-  --modal-overlay-color: rgb(40, 44, 52, 0.8);
-  --modal-shadow-color: black;
+    --main-bg-color: rgb(40, 44, 52);
+    --modal-overlay-color: rgb(40, 44, 52, 0.8);
+    --modal-shadow-color: black;
 
-  --main-font-color: black;
-  --disabled-font-color: lightgrey;
-  --label-font-color: grey;
+    --main-font-color: black;
+    --disabled-font-color: lightgrey;
+    --label-font-color: grey;
 
-  --panel-bg-color: white;
+    --panel-bg-color: white;
 
-  --control-border-color: lightgrey;
-  --disabled-control-border-color: lightgrey;
-  --hovered-control-border-color: palevioletred;
+    --control-border-color: lightgrey;
+    --disabled-control-border-color: lightgrey;
+    --hovered-control-border-color: palevioletred;
 
-  --control-color: transparent;
-  --disabled-control-color: transparent;
-  --hovered-control-color: transparent;
+    --control-color: transparent;
+    --disabled-control-color: transparent;
+    --hovered-control-color: transparent;
 
-  --perfect-note-color: green;
-  --good-note-color: orange;
-  --missed-note-color: red;
+    --perfect-note-color: green;
+    --good-note-color: orange;
+    --missed-note-color: red;
 }
