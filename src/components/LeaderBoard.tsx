@@ -87,16 +87,39 @@ const ScoreInput = styled.input`
 `
 
 interface LeaderBoardProps {
+    /**
+     * The settings of the most recent game, as passed down by Game.
+     */
     settings: GameSettings;
+
+    /**
+     * The score earned in the most recent game, as passed down by Game.
+     */
     score: number;
+
+    /**
+     * The callback to call when the leaderboard is closed.
+     */
     onClose: () => void;
 }
 
 interface LeaderBoardState {
+    /**
+     * The name that the player has currently entered.
+     */
     name: string;
 }
 
+/**
+ * Leaderboard component that displays the leaderboard for given game settings.
+ * The leaderboard is different for every combination of time signature, BPM
+ * and bars to play.
+ */
 export default class LeaderBoard extends React.Component<LeaderBoardProps, LeaderBoardState> {
+
+    //=========================================================================
+    // Constructor
+    //=========================================================================
     
     public constructor(props: LeaderBoardProps) {
         super(props);
@@ -107,11 +130,11 @@ export default class LeaderBoard extends React.Component<LeaderBoardProps, Leade
     // Event handlers
     //=========================================================================
 
-    private onNameChange(event: React.FormEvent<HTMLInputElement>) {
+    private onNameChange(event: React.FormEvent<HTMLInputElement>): void {
         this.setState({name: event.currentTarget.value});
     }
 
-    private onSubmit() {
+    private onSubmit(): void {
         this.props.onClose();
 
         if (this.state.name === "")
@@ -127,7 +150,7 @@ export default class LeaderBoard extends React.Component<LeaderBoardProps, Leade
     // React overloads
     //=========================================================================
 
-    public render() {
+    public render(): React.ReactNode {
         let settings = this.props.settings.timeSignature.beatCount
                      + "/"
                      + Measures.Note.Whole.units / this.props.settings.timeSignature.beatLength.units
@@ -202,7 +225,7 @@ export default class LeaderBoard extends React.Component<LeaderBoardProps, Leade
     // Helper functions
     //=========================================================================
 
-    private renderScore(score: Storage.ScoresRow, index: number) {
+    private renderScore(score: Storage.ScoresRow, index: number): React.ReactNode {
         let nbsp = "\u00A0";
         return (
             <ScoreRow key="{score.name}_{score.score}_{index}">

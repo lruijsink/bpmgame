@@ -34,8 +34,26 @@ export enum Score {
     Unknown = -1,
 };
 
+/**
+ * The game uses setTimeout/setInterval for timing, which is not very accurate.
+ * To compensate for this, there is this compensation factor, which offsets the
+ * player's tapping time by this factor. Value in milliseconds.
+ * 
+ * To calibrate, run the game with the browser console open. Tap as accurately
+ * as you can and watch the values printed to the console. This factor should
+ * hover around the average of those values. See also README.md
+ */
 export const TapCompensationFactor = 100;
-export function getScore(tapTime: number, beatTime: number, msPerBeat: number) {
+
+/**
+ * Calculates the score that the player earns for a tap.
+ * 
+ * @param tapTime   Time value (Date.now()) when the tap occured.
+ * @param beatTime  Time value when the beat occured.
+ * @param msPerBeat How many milliseconds between beats.
+ * @return          The score that the player earns for the tap.
+ */
+export function getScore(tapTime: number, beatTime: number, msPerBeat: number): number {
     tapTime -= TapCompensationFactor;
     
     let perfectTimeWindow = Math.min(msPerBeat * 0.2, 60);
@@ -50,7 +68,13 @@ export function getScore(tapTime: number, beatTime: number, msPerBeat: number) {
         return Score.Miss;
 }
 
-export function calculateScore(scorePerBeat: number[]) {
+/**
+ * Calculates the total score for a given game.
+ * 
+ * @param scorePerBeat The scores earned per beat
+ * @return             The total score earned
+ */
+export function calculateScore(scorePerBeat: number[]): number {
     scorePerBeat[0] = 0;
     let total = scorePerBeat.reduce((x, y) => x + y, 0);
     let max = (scorePerBeat.length - 1) * Score.Perfect;
@@ -63,6 +87,17 @@ export function calculateScore(scorePerBeat: number[]) {
 
 export const ClickSound = new Sound("click.wav");
 export const AccentedClickSound = new Sound("click_accented.wav");
-export function playClickSound(accented: boolean) {
+export function playClickSound(accented: boolean): void {
     (accented ? AccentedClickSound : ClickSound).play();
 }
+
+//=============================================================================
+// Images
+//=============================================================================
+export const NoteLengthToImage = new Map([
+    [Measures.Note.Whole.units,     process.env.PUBLIC_URL + "/svg/WholeNote.png"],
+    [Measures.Note.Half.units,      process.env.PUBLIC_URL + "/svg/HalfNote.png"],
+    [Measures.Note.Quarter.units,   process.env.PUBLIC_URL + "/svg/QuarterNote.png"],
+    [Measures.Note.Eighth.units,    process.env.PUBLIC_URL + "/svg/EighthNote.png"],
+    [Measures.Note.Sixteenth.units, process.env.PUBLIC_URL + "/svg/SixteenthNote.png"]
+]);

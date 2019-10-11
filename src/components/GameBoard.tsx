@@ -69,23 +69,43 @@ const Beat = styled.span`
     padding-top: 0.8em;
 `
 
-interface GameBoardProperties {
+interface GameBoardProps {
+    /**
+     * The current game settings, as passed down by Game.
+     */
     settings: GameSettings;
+
+    /**
+     * The most recent beat that was played.
+     */
     currentBeat: number;
+
+    /**
+     * Whether the game is counting down/countdown pane is shown.
+     */
     countingDown: boolean;
+
+    /**
+     * The score per beat that the player has scored. Should be values of
+     * GameConfig.Score
+     */
     scorePerBeat: number[];
 }
 
 interface GameBoardState {
 }
 
-export default class GameBoard extends React.Component<GameBoardProperties, GameBoardState> {
+/**
+ * Game board component that displays either the game board (a musical staff
+ * with bars and notes to represent beats), or a countdown pane.
+ */
+export default class GameBoard extends React.Component<GameBoardProps, GameBoardState> {
 
     //=========================================================================
     // React overloads
     //=========================================================================
 
-    public render() {
+    public render(): React.ReactNode {
         let content;
         if(this.props.countingDown) {
             content = (
@@ -120,7 +140,7 @@ export default class GameBoard extends React.Component<GameBoardProperties, Game
     // Helper functions
     //=========================================================================
 
-    private renderBar(barIndex: number) {
+    private renderBar(barIndex: number): React.ReactNode {
         return (
             <Bar key={"bar" + barIndex}>
                 <BeatsOuter>
@@ -134,7 +154,7 @@ export default class GameBoard extends React.Component<GameBoardProperties, Game
         );
     }
 
-    private renderBeat(barIndex: number, beatIndex: number) {
+    private renderBeat(barIndex: number, beatIndex: number): React.ReactNode {
         let beatNumber = barIndex * this.props.settings.timeSignature.beatCount + beatIndex;
         return (
             <Beat key={"beat" + beatNumber}>

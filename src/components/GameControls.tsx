@@ -68,24 +68,45 @@ const PlayButton = styled(StyledButton)`
     width: 4em;
 `
 
-interface GameControlsProperties {
+interface GameControlsProps {
+    /**
+     * Whether the game is currently in play, also true when counting down.
+     */
     playing: boolean;
+
+    /**
+     * Callback to call when the settings have changed.
+     */
     onSettingsChange: (newSettings: GameSettings) => void;
+
+    /**
+     * Callback to call when the play button is toggled.
+     */
     onTogglePlay: () => void;
 }
 
 interface GameControlsState {
+    /**
+     * The current time signature that the player has selected.
+     */
     timeSignature: Measures.TimeSignature;
+
+    /**
+     * The current BPM that the player has selected.
+     */
     bpm: number;
 }
 
-export default class GameControls extends React.Component<GameControlsProperties, GameControlsState> {
+/**
+ * Game controls component that lets the player change the game settings.
+ */
+export default class GameControls extends React.Component<GameControlsProps, GameControlsState> {
 
     //=========================================================================
-    // Methods
+    // Constructor
     //=========================================================================
 
-    public constructor(props: GameControlsProperties) {
+    public constructor(props: GameControlsProps) {
         super(props);
 
         this.state = {
@@ -98,26 +119,26 @@ export default class GameControls extends React.Component<GameControlsProperties
     // Event handlers
     //=========================================================================
 
-    private onUpdateBPM(newBPM: number) {
+    private onUpdateBPM(newBPM: number): void {
         this.setState((state, props) => ({
             bpm: newBPM
         }));
     }
 
-    private onUpdateTimeSignatureCount(newCount: number) {
+    private onUpdateTimeSignatureCount(newCount: number): void {
         this.setState((state, props) => ({
             timeSignature: new Measures.TimeSignature(newCount, state.timeSignature.beatLength)
         }));
     }
 
-    private onUpdateTimeSignatureLength(newValue: number) {
+    private onUpdateTimeSignatureLength(newValue: number): void {
         let newLength = new Measures.TimeSpan(Measures.Note.Whole.units / newValue);
         this.setState((state, props) => ({
             timeSignature: new Measures.TimeSignature(state.timeSignature.beatCount, newLength)
         }));
     }
 
-    private onTogglePlay() {
+    private onTogglePlay(): void {
         this.props.onTogglePlay();
     }
 
@@ -125,7 +146,7 @@ export default class GameControls extends React.Component<GameControlsProperties
     // React overloads
     //=========================================================================
 
-    public componentDidUpdate(prevProps: GameControlsProperties, prevState: GameControlsState) {
+    public componentDidUpdate(prevProps: GameControlsProps, prevState: GameControlsState): void {
         if (this.state.timeSignature.beatCount !== prevState.timeSignature.beatCount
             || this.state.timeSignature.beatLength !== prevState.timeSignature.beatLength
             || this.state.bpm !== prevState.bpm)
@@ -138,7 +159,7 @@ export default class GameControls extends React.Component<GameControlsProperties
         }
     }
 
-    public render() {
+    public render(): React.ReactNode {
         return (
             <Container>
                 <InnerContainer>

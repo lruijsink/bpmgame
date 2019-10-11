@@ -22,9 +22,9 @@ export class TimeSpan {
      * Converts the timespan in units of TimeUnit to seconds, given a BPM and
      * what the note length of a beat should be.
      * 
-     * @param beatsPerMinute    The BPM to convert to
-     * @param beatNoteLength    The note length of a beat
-     * @return                  The timespan converted to seconds
+     * @param beatsPerMinute The BPM to convert to
+     * @param beatNoteLength The note length of a beat
+     * @return               The timespan converted to seconds
      */
     toSeconds(beatsPerMinute: number,
               beatNoteLength: TimeSpan = Note.Quarter): number {
@@ -37,9 +37,9 @@ export class TimeSpan {
      * and what the note length of a beat should be. Unlike toSeconds, which
      * returns a float, this function will round to an integer.
      * 
-     * @param beatsPerMinute    The BPM to convert to
-     * @param beatNoteLength    The note length of a beat
-     * @return                  The timespan converted to milliseconds
+     * @param beatsPerMinute The BPM to convert to
+     * @param beatNoteLength The note length of a beat
+     * @return               The timespan converted to milliseconds
      */
     toMilliseconds(beatsPerMinute: number,
                    beatNoteLength: TimeSpan = Note.Quarter): number {
@@ -87,8 +87,7 @@ export class TimeSignature {
      * @param count  The number of beats per bar
      * @param length The note length of a beat
      */
-    public constructor(count : number,
-                       length : TimeSpan) {
+    public constructor(count : number, length : TimeSpan) {
         this.beatCount = count;
         this.beatLength = length;
     }
@@ -96,8 +95,8 @@ export class TimeSignature {
     /**
      * Tests for equality against another time signature.
      * 
-     * @param other    The time signature to test against
-     * @return boolean Whether this time signature equals the other
+     * @param  other The time signature to test against
+     * @return       Whether this time signature equals the other
      */
     public equals(other: TimeSignature): boolean {
         return this.beatCount  === other.beatCount

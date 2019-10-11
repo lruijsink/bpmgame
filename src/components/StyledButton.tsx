@@ -1,5 +1,8 @@
 import styled from 'styled-components';
 
+/**
+ * A styled button configured to take on colors as set by the theme CSS.
+ */
 export const StyledButton = styled.button`
     background: var(--control-color);
     border: 0.1em solid var(--control-border-color);

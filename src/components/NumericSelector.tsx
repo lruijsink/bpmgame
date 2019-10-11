@@ -64,18 +64,40 @@ const DisabledValue = styled(Value)`
     color: var(--disabled-font-color);
 `
 
-interface NumericSelectorProperties {
+interface NumericSelectorProps {
+    /**
+     * The default value to select.
+     */
     value: number;
+
+    /**
+     * The possible options to select from.
+     */
     options: number[];
+
+    /**
+     * Whether to disable the control.
+     */
     disabled: boolean;
+
+    /**
+     * The callback to call when the selected value is changed.
+     */
     onChange: (v: number) => void;
 };
 
 interface NumericSelectorState {
+    /**
+     * The index of the current value in state.options, easier to deal with
+     * indices internally than with values.
+     */
     index: number;
 };
 
-export default class NumericSelector extends React.Component<NumericSelectorProperties, NumericSelectorState> {
+/**
+ * An input that lets the user select from pre-determined numeric options.
+ */
+export default class NumericSelector extends React.Component<NumericSelectorProps, NumericSelectorState> {
 
     public static defaultProps: {
         disabled: false,
@@ -83,10 +105,10 @@ export default class NumericSelector extends React.Component<NumericSelectorProp
     }
 
     //=========================================================================
-    // Methods
+    // Constructor
     //=========================================================================
 
-    public constructor(props: NumericSelectorProperties) {
+    public constructor(props: NumericSelectorProps) {
         super(props);
 
         let index = props.options.findIndex((v, i, o) => v === props.value);
@@ -102,13 +124,13 @@ export default class NumericSelector extends React.Component<NumericSelectorProp
     // Event handlers
     //=========================================================================
 
-    private onIncrement() {
+    private onIncrement(): void {
         this.setState((prevState, props) => ({
             index: Math.min(prevState.index + 1, props.options.length - 1)
         }));
     }
 
-    private onDecrement() {
+    private onDecrement(): void {
         this.setState((prevState, props) => ({
             index: Math.max(prevState.index - 1, 0)
         }));
@@ -118,13 +140,13 @@ export default class NumericSelector extends React.Component<NumericSelectorProp
     // React overloads
     //=========================================================================
 
-    public componentDidUpdate(prevProps: NumericSelectorProperties, prevState: NumericSelectorState) {
+    public componentDidUpdate(prevProps: NumericSelectorProps, prevState: NumericSelectorState): void {
         if(this.state.index !== prevState.index) {
             this.props.onChange(this.props.options[this.state.index]);
         }
     }
 
-    public render() {
+    public render(): React.ReactNode {
         let value = this.props.disabled 
                   ? <DisabledValue>{this.props.options[this.state.index]}</DisabledValue>
                   : <Value>{this.props.options[this.state.index]}</Value>;

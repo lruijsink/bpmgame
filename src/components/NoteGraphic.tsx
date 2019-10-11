@@ -30,7 +30,7 @@ const MissedNoteImg = styled(NoteImg)`
     border-color: var(--missed-note-color);
 `
 
-interface NoteGraphicProperties {
+interface NoteGraphicProps {
     beatLength: Measures.TimeSpan;
     played: boolean;
     score: number;
@@ -39,18 +39,19 @@ interface NoteGraphicProperties {
 interface NoteGraphicState {
 }
 
-export default class NoteGraphic extends React.Component<NoteGraphicProperties, NoteGraphicState> {
-    public render() {
-        let lengthUnitsToSVG = new Map([
-            [Measures.Note.Whole.units,     "WholeNote.png"],
-            [Measures.Note.Half.units,      "HalfNote.png"],
-            [Measures.Note.Quarter.units,   "QuarterNote.png"],
-            [Measures.Note.Eighth.units,    "EighthNote.png"],
-            [Measures.Note.Sixteenth.units, "SixteenthNote.png"]
-        ]);
+/**
+ * Renders a note graphic, based on the note length, whether the note has been
+ * ticked/played yet, and what the player scored for the given note.
+ */
+export default class NoteGraphic extends React.Component<NoteGraphicProps, NoteGraphicState> {
 
-        let src = process.env.PUBLIC_URL + "/svg/" + lengthUnitsToSVG.get(this.props.beatLength.units);
-
+    //=========================================================================
+    // React overloads
+    //=========================================================================
+    
+    public render(): React.ReactNode {
+        let src = GameConfig.NoteLengthToImage.get(this.props.beatLength.units);
+        
         let img = <NoteImg src={src} />
         if (this.props.score === GameConfig.Score.Perfect)
             img = <PerfectNoteImg src={src} />
