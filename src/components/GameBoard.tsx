@@ -4,7 +4,6 @@ import styled from 'styled-components';
 import NoteGraphic from './NoteGraphic'
 
 import * as Measures from './../utility/measures';
-import * as Async from './../utility/async';
 
 const Container = styled.div`
     width: 29.4em;
@@ -30,14 +29,15 @@ const CountDownCounter = styled.div`
 `
 
 const Board = styled.div`
-    padding: 1em;
+    padding: 0.5em;
+    padding-left: 0;
+    padding-right: 0;
 `
 
 const BarsOuter = styled.div`
     display: table;
     width: 100%;
-    height: 3em;
-    border-left: 0.1em solid black;
+    height: 4em;
 `
 
 const BarsInner = styled.div`
@@ -47,9 +47,11 @@ const BarsInner = styled.div`
 const Bar = styled.div`
     display: table-cell;
     text-align: center;
-    border-right: 0.1em solid black;
-    border-top: none;
-    border-bottom: none;
+    border-left: 0.1em solid var(--control-border-color);
+
+    :first-child {
+        border-color: transparent;
+    }
 `
 
 const BeatsOuter = styled.div`
@@ -64,7 +66,7 @@ const BeatsInner = styled.div`
 
 const Beat = styled.span`
     display: table-cell;
-    padding-top: 0.7em;
+    padding-top: 0.8em;
 `
 
 interface GameBoardProperties {
@@ -122,7 +124,7 @@ export default class GameBoard extends React.Component<GameBoardProperties, Game
 
     private renderBar(barIndex: number) {
         return (
-            <Bar>
+            <Bar key={"bar" + barIndex}>
                 <BeatsOuter>
                     <BeatsInner>
                         {new Array(this.props.timeSignature.beatCount).fill(null).map(
@@ -135,11 +137,13 @@ export default class GameBoard extends React.Component<GameBoardProperties, Game
     }
 
     private renderBeat(barIndex: number, beatIndex: number) {
+        let beatNumber = barIndex * this.props.timeSignature.beatCount + beatIndex;
         return (
-            <Beat>
+            <Beat key={"beat" + beatNumber}>
                 <NoteGraphic
                     beatLength={this.props.timeSignature.beatLength}
-                    played={this.props.currentBeat > barIndex * this.props.timeSignature.beatCount + beatIndex}
+                    played={this.props.currentBeat > beatNumber}
+                    score={this.props.scorePerBeat[beatNumber + 1]}
                 />
             </Beat>
         );

@@ -70,8 +70,7 @@ export default class Game extends React.Component<GameProperties, GameState> {
     
     private beatsToPlay: number = 0;
     private msPerBeat: number = 0;
-    private perfectTimeWindow: number = 0;
-    private goodTimeWindow: number = 0;
+    private beatTimes: number[] = [];
 
     private clickSound = new Audio(Game.defaultProps.clickSoundFile);
     private accentedClickSound = new Audio(Game.defaultProps.accentedClickSoundFile);
@@ -101,8 +100,12 @@ export default class Game extends React.Component<GameProperties, GameState> {
     private recalculateTemporaries() {
         this.beatsToPlay = this.state.timeSignature.beatCount * this.props.barsToPlay;
         this.msPerBeat = this.state.timeSignature.beatLength.toMilliseconds(this.state.bpm);
-        this.perfectTimeWindow = GameConfig.TimeWindowMultiplier.Perfect * this.msPerBeat;
-        this.goodTimeWindow = GameConfig.TimeWindowMultiplier.Good * this.msPerBeat;
+    }
+
+    private updateScore(beat: number, score: number) {
+        this.setState((prevState, props) => ({
+            scorePerBeat: prevState.scorePerBeat.map((v, i) => v === GameConfig.Score.Unknown ? (i === beat ? score : v) : v)
+        }));
     }
 
     //=========================================================================
@@ -113,7 +116,8 @@ export default class Game extends React.Component<GameProperties, GameState> {
         this.setState((prevState, props) => ({
             currentBeat: 0,
             timeSignature: newTimeSignature,
-            bpm: newBPM
+            bpm: newBPM,
+            scorePerBeat: new Array<number>(this.beatsToPlay + 1).fill(GameConfig.Score.Unknown)
         }));
     }
 
@@ -123,18 +127,14 @@ export default class Game extends React.Component<GameProperties, GameState> {
         }));
     }
 
-    private onFinish() {
-        this.setState((prevState, props) => ({
-            playing: false
-        }));
-    }
-
     private onPlay() {
         this.setState((prevState, props) => ({
             currentBeat: 0,
             countingDown: true,
             scorePerBeat: new Array<number>(this.beatsToPlay + 1).fill(GameConfig.Score.Unknown)
         }));
+
+        this.beatTimes = new Array<number>(this.beatsToPlay + 1).fill(0);
 
         this.ticker = new Async.Ticker({
             onTick: this.onCountDown.bind(this),
@@ -169,24 +169,38 @@ export default class Game extends React.Component<GameProperties, GameState> {
         // Mark the beat as missed after the "good" time window has passed
         setTimeout(
             () => {
-                console.log(this.state.scorePerBeat);
-                if (this.state.scorePerBeat[counter] === GameConfig.Score.Unknown)
-                    this.state.scorePerBeat[counter] = GameConfig.Score.Miss;
+                this.updateScore(counter, GameConfig.Score.Miss);
             },
-            this.goodTimeWindow
+            this.msPerBeat / 2
         );
+
+        this.beatTimes[counter] = Date.now();
     }
 
     private onStop() {
         this.setState({
+            currentBeat: 0,
             countingDown: false,
+            scorePerBeat: new Array<number>(this.beatsToPlay + 1).fill(GameConfig.Score.Unknown)
         });
 
         if (this.ticker !== undefined)
             this.ticker.stop();
     }
 
+    private onFinish() {
+        setTimeout(() => {this.setState({playing: false})}, this.msPerBeat);
+    }
+
     private onTap() {
+        if (!this.state.playing || this.state.countingDown)
+            return;
+
+        let tapTime = Date.now();
+        let beatTime = this.beatTimes[this.state.currentBeat];
+        this.updateScore(this.state.currentBeat, GameConfig.getScore(tapTime, beatTime, this.msPerBeat));
+
+        console.log(tapTime - beatTime);
     }
 
     //=========================================================================
@@ -194,6 +208,9 @@ export default class Game extends React.Component<GameProperties, GameState> {
     //=========================================================================
 
     public componentDidUpdate(prevProps: GameProperties, prevState: GameState) {
+        if (this.state.bpm !== prevState.bpm || this.state.timeSignature !== prevState.timeSignature)
+            this.recalculateTemporaries();
+
         if (this.state.playing !== prevState.playing) {
             if (this.state.playing)
                 this.onPlay();

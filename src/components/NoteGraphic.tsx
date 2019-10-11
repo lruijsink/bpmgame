@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import * as Measures from './../utility/measures';
+import * as GameConfig from './../utility/gameConfig';
 
 const Note = styled.div`
 	margin-left: -1em;
@@ -14,11 +15,25 @@ const PendingNote = styled(Note)`
 
 const NoteImg = styled.img`
 	width: 1em;
+	border-top: 0.4em solid transparent;
+`
+
+const PerfectNoteImg = styled(NoteImg)`
+	border-color: green;
+`
+
+const GoodNoteImg = styled(NoteImg)`
+	border-color: orange;
+`
+
+const MissedNoteImg = styled(NoteImg)`
+	border-color: red;
 `
 
 interface NoteGraphicProperties {
 	beatLength: Measures.TimeSpan;
 	played: boolean;
+	score: number;
 }
 
 interface NoteGraphicState {
@@ -34,11 +49,18 @@ export default class NoteGraphic extends React.Component<NoteGraphicProperties, 
 			[Measures.Note.Sixteenth.units, "SixteenthNote.png"]
 		]);
 
-		let img = <NoteImg src={process.env.PUBLIC_URL + "/svg/" + lengthUnitsToSVG.get(this.props.beatLength.units)} />;
-		let note = this.props.played
-		         ? <Note>{img}</Note>
-		         : <PendingNote>{img}</PendingNote>
+		let src = process.env.PUBLIC_URL + "/svg/" + lengthUnitsToSVG.get(this.props.beatLength.units);
 
-		return note;
+		let img = <NoteImg src={src} />
+		if (this.props.score === GameConfig.Score.Perfect)
+			img = <PerfectNoteImg src={src} />
+		else if (this.props.score === GameConfig.Score.Good)
+			img = <GoodNoteImg src={src} />
+		else if (this.props.score === GameConfig.Score.Miss)
+			img = <MissedNoteImg src={src} />
+
+		return this.props.played
+		     ? <Note>{img}</Note>
+		     : <PendingNote>{img}</PendingNote>;
 	}
 }
